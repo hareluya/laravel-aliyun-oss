@@ -382,7 +382,9 @@ class AliyunOssAdapter extends AbstractAdapter
      */
     public function initMultiUpload($path)
     {
+        \Log::info('in aliyun ');
         $uploadId = $this->aliyunClient->init_multipart_upload($this->bucket, $path);
+        \Log::info($uploadId);
         return $uploadId;
     }
 
