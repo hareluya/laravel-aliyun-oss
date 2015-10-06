@@ -20,7 +20,7 @@ class AliyunOssAdapter extends AbstractAdapter
     /**
      * @return bool
      */
-    private function createBucket()
+    public function createBucket()
     {
         $oss = $this->aliyunClient;
         $bucket = $this->getBucket();
@@ -373,5 +373,64 @@ class AliyunOssAdapter extends AbstractAdapter
     public function getVisibility($path)
     {
         return false;
+    }
+
+    /**
+     * 初始化多块上传
+     * @param $path 目标文件名
+     * @return string ObjectId
+     * @throws \Aliyun\OSS_Exception
+     */
+    public function initMultiUpload($path)
+    {
+        $uploadId = $this->aliyunClient->init_multipart_upload($this->bucket, $path);
+        return $uploadId;
+    }
+
+    /**
+     * 分块上传
+     * @param $path 目标文件名
+     * @param $uploadId
+     * @return \Aliyun\ResponseCore
+     */
+    public function uploadMultiPart($path,$uploadId)
+    {
+        $response = $this->aliyunClient->upload_part($this->bucket, $path, $uploadId);
+        return $response;
+    }
+
+    /**
+     * 分块上传信息整合
+     * @param $res 分块返回信息
+     * @param $partsList 整合数组
+     * @param $count 统计数
+     * @return array
+     * @throws OSS_Exception
+     */
+
+    public function mergeMultiInfo($res,$partsList,$count)
+    {
+        $upload_part_result =  $res->isOk();
+        if(!$upload_part_result){
+            throw new OSS_Exception('any part upload failed, please try again');
+        }
+        $partsList[] = array(
+            'PartNumber' => $count,
+            'ETag' => (string) $res->header['etag']
+        );
+        return $partsList;
+    }
+
+    /**
+     * 完成分块上传
+     * @param $path 目标文件名
+     * @param $uploadId
+     * @param $partsList 分块上传信息
+     * @return \Aliyun\ResponseCore
+     */
+    public function finishMultiUpload($path,$uploadId,$partsList)
+    {
+        $res = $this->aliyunClient->complete_multipart_upload($this->bucket, $path, $uploadId, $partsList);
+        return $res;
     }
 }
