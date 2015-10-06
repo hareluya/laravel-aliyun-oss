@@ -1,6 +1,5 @@
 <?php namespace Hareluya\AliyunOss;
 
-use Aliyun\ALIOSS;
 
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Config;
@@ -9,7 +8,7 @@ class AliyunOssAdapter extends AbstractAdapter
 {
     private $aliyunClient;
     private $bucket;
-    public function __construct(ALIOSS $client, $bucket, $prefix = '')
+    public function __construct(\ALIOSS $client, $bucket, $prefix = '')
     {
         $this->aliyunClient = $client;
         $this->bucket = $bucket;
@@ -24,7 +23,7 @@ class AliyunOssAdapter extends AbstractAdapter
     {
         $oss = $this->aliyunClient;
         $bucket = $this->getBucket();
-        $acl = ALIOSS::OSS_ACL_TYPE_PUBLIC_READ;
+        $acl = \ALIOSS::OSS_ACL_TYPE_PUBLIC_READ;
         $oss->create_bucket($bucket, $acl);
         return true;
     }

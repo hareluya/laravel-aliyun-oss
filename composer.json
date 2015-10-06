@@ -17,9 +17,9 @@
       "league/flysystem": "~1.0"
     },
     "autoload": {
+      "files": ["src/Aliyun/sdk.class.php"],
       "psr-4": {
-        "Hareluya\\AliyunOss\\": "src/",
-        "Aliyun\\": "src/Aliyun/"
+        "Hareluya\\AliyunOss\\": "src/"
       }
     }
 }

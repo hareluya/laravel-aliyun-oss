@@ -1,5 +1,4 @@
 <?php
-namespace Aliyun;
 /**
  * OSS(Open Storage Services) PHP SDK 
  */
