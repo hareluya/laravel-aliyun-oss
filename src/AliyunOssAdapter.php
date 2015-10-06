@@ -389,13 +389,23 @@ class AliyunOssAdapter extends AbstractAdapter
 
     /**
      * 分块上传
+     * @param $file 文件块（小于100KB）
      * @param $path 目标文件名
      * @param $uploadId
+     * @param $count
      * @return \Aliyun\ResponseCore
      */
-    public function uploadMultiPart($path,$uploadId)
+    public function uploadMultiPart($file,$path,$uploadId,$count)
     {
-        $response = $this->aliyunClient->upload_part($this->bucket, $path, $uploadId);
+        $md5=$this->getFileMD5($file);
+        $options = array(
+            self::OSS_FILE_UPLOAD => $file,
+            self::OSS_PART_NUM => $count,
+            self::OSS_CHECK_MD5 => 'true',
+           self::OSS_CONTENT_MD5=>$md5
+        );
+
+        $response = $this->aliyunClient->upload_part($this->bucket, $path, $uploadId,$options);
         return $response;
     }
 
@@ -433,4 +443,44 @@ class AliyunOssAdapter extends AbstractAdapter
         $res = $this->aliyunClient->complete_multipart_upload($this->bucket, $path, $uploadId, $partsList);
         return $res;
     }
+
+    /**
+     * @param $file
+     */
+    public function getFileMD5($file)
+    {
+        $left_length = filesize($file);
+        $fh = fopen($file, 'rb');
+        $buffer = 8192;
+        $data = '';
+        while (!feof($fh))
+        {
+            if ($left_length >= $buffer)
+            {
+                $read_length = $buffer;
+            } else
+            {
+                $read_length = $left_length;
+            }
+            if ($read_length <= 0)
+            {
+                break;
+            } else
+            {
+                $data .= fread($fh, $read_length);
+                $left_length = $left_length - $read_length;
+            }
+        }
+        fclose($fh);
+        return base64_encode(md5($data, true));
+    }
+
+    const OSS_FILE_UPLOAD = 'fileUpload';
+    const OSS_PART_SIZE = 'partSize';
+    const OSS_SEEK_TO = 'seekTo';
+    const OSS_CHECK_MD5 = 'checkmd5';
+    const OSS_LENGTH = 'length';
+    const OSS_PART_NUM = 'partNumber';
+    const OSS_CONTENT_MD5 = 'Content-Md5';
+
 }
